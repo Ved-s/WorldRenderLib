@@ -147,7 +147,7 @@ namespace WorldRenderLib
             if (OtherSide.IsReady)
             {
                 PortalShader ??= WorldRenderLib.GetEffect("Effects/PortalShader.fxb");
-
+                
                 Main.spriteBatch.End();
                 Main.spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.PointClamp, null, RasterizerState.CullNone);
 
