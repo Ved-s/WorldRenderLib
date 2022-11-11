@@ -1,0 +1,30 @@
+﻿sampler2D texSampler : register(S0);
+
+float2 origin;
+float angleCenter;
+float angleSide;
+
+bool TrimCheck(float2 pos)
+{
+    pos -= origin;
+    float pa = abs((atan2(pos.y, pos.x) - angleCenter + 6.283) % 6.283);
+    return pa < angleSide;
+}
+
+float4 PSMain(float2 pos : TEXCOORD0) : COLOR
+{
+    if (!TrimCheck(pos))
+        return tex2D(texSampler, pos);
+    return 0;
+}
+
+technique Main
+{
+    pass Main
+    {
+        PixelShader = compile ps_3_0 PSMain();
+    }
+}
+
+
+

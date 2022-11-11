@@ -1,0 +1,4 @@
+displayName = World Render Library
+author = Ved_s
+version = 0.1
+side = Client

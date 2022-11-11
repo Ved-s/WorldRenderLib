@@ -1,0 +1,48 @@
+﻿sampler2D texSampler : register(S0);
+
+float2 rotOriginA;
+float2 rotOriginB;
+float angle;
+
+bool CheckAngle(float2 pos, float2 origin, float angle)
+{
+    pos = pos - origin;
+    float pa = abs((atan2(pos.y, pos.x) + 3.141592 - angle + 6.283) % 6.283);
+    return pa < 3.141592;
+}
+
+bool TrimCheck(float2 pos)
+{
+    if (CheckAngle(pos, rotOriginA, angle))
+        return true;
+    
+    if (CheckAngle(pos, float2(1, 1) - rotOriginA, (angle + 3.141592) % 6.283))
+        return true;
+    
+    if (CheckAngle(pos, rotOriginB, (angle - 1.5708 + 6.283) % 6.283))
+        return true;
+    
+    if (CheckAngle(pos, float2(1, 1) - rotOriginB, (angle + 1.5708) % 6.283))
+        return true;
+
+
+    return false;
+}
+
+float4 PSMain(float2 pos : TEXCOORD0) : COLOR
+{
+    if (!TrimCheck(pos))
+        return tex2D(texSampler, pos);
+    return 0;
+}
+
+technique Main
+{
+    pass Main
+    {
+        PixelShader = compile ps_3_0 PSMain();
+    }
+}
+
+
+
