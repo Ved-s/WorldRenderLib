@@ -21,7 +21,7 @@ using WorldRenderLib.Wrappers;
 using WorldRenderLib.Wrapping;
 
 // TODO: fix undeground bg
-// TODO: fix water transparency
+// TODO: fix water transparency 
 // TODO: fix water color
 // TODO: fix issues with black
 

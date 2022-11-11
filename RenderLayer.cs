@@ -3,14 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using Terraria;
 
-// TODO: fix clouds using real player pos
-// TODO: fix undeground bg
-// TODO: fix water transparency
-// TODO: fix water color
-// TODO: fix issues with black
-// TODO: move private static delegates and helpers
-// TODO: make biome bg use real screen size
-
 namespace WorldRenderLib
 {
     internal class RenderLayer : IDisposable

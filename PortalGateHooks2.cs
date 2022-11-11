@@ -13,8 +13,6 @@ using Terraria.ModLoader.IO;
 using WorldRenderLib.Wrappers;
 using WorldRenderLib.Wrapping;
 
-// TODO: fix +-MaxInt world render size when jumping through horizontal portals
-
 namespace WorldRenderLib
 {
     internal class PortalGateHooks2 : GlobalProjectile
@@ -143,7 +141,6 @@ namespace WorldRenderLib
             Vector2 portalRightHit = RaycastToScreenBorder(portalRight, portalRightHitDir);
             Vector2 portalLeftHit = RaycastToScreenBorder(portalLeft, portalLeftHitDir);
             Vector2 portalCenterHit = RaycastToScreenBorder(portalScreen, portalCenterHitDir);
-
             
             bool flip = projectile.ai[0] == otherPortal.ai[0];
 
@@ -187,10 +184,9 @@ namespace WorldRenderLib
 
             if (!WorldRenderer.RenderingAny)
             {
+                // Try follow screen edge
                 Vector2 screenVelocity = Main.screenPosition - Main.screenLastPosition;
-
                 portalCenterHit += portalCenterHitDir * (Math.Max(0, Vector2.Dot(portalCenterHitDir, screenVelocity)) + 16);
-
 
                 Vector2 portalDiff = otherPortal.Center - projectile.Center;
                 Rectangle viewBox = GetBoundingBox(portalRightHit, portalLeftHit, portalRight, portalLeft, portalCenterHit);
@@ -210,29 +206,17 @@ namespace WorldRenderLib
                 otherSideViewBox.Offset(portalDiff.ToPoint());
                 otherSideViewBox.Offset(Main.screenPosition.ToPoint());
 
-                OtherSide.WorldRectangle = otherSideViewBox;
-
+                // TODO: fix huge world render size when jumping through horizontal portals
                 if (otherSideViewBox.Width < -100000 || otherSideViewBox.Width > 100000 || otherSideViewBox.Height < -100000 || otherSideViewBox.Height > 100000)
                 {
-                    Debugger.Break();
+                    otherSideViewBox.Width = otherSideViewBox.Height = 0;
                 }
+
+                OtherSide.WorldRectangle = otherSideViewBox;
 
                 OldViewBox = viewBox;
                 OldViewBox.Offset(Main.screenPosition.ToPoint());
-
-                //Graphics.DrawRect(viewBox, Color.Red);
-                //Graphics.DrawRect(otherSideViewBox, Color.Green);
             }
-
-            //Graphics.DrawLine(portalScreen, portalCenterHit, Color.White);
-            //Graphics.DrawLine(portalLeft, portalLeftHit, Color.White);
-            //Graphics.DrawLine(portalRight, portalRightHit, Color.White);
-            //
-            //Graphics.DrawDot(portalCenterHit, Color.White);
-            //Graphics.DrawDot(portalRightHit, Color.White);
-            //Graphics.DrawDot(portalLeftHit, Color.White);
-            //
-            //Graphics.DrawLine(portalScreen, portalScreen + new Vector2(MathF.Sin(projectile.ai[0]), -MathF.Cos(projectile.ai[0])) * 20, Color.Red);
         }
         public override void Kill(Projectile projectile, int timeLeft)
         {
@@ -256,11 +240,6 @@ namespace WorldRenderLib
         }
         static Rectangle GetBoundingBox(Vector2 a, Vector2 b, Vector2 c, Vector2 d, Vector2 e)
         {
-            //Graphics.DrawDot(a, Color.Cyan);
-            //Graphics.DrawDot(b, Color.Cyan);
-            //Graphics.DrawDot(c, Color.Cyan);
-            //Graphics.DrawDot(d, Color.Cyan);
-
             float minX = Math.Min(Math.Min(Math.Min(a.X, b.X), Math.Min(c.X, d.X)), e.X);
             float minY = Math.Min(Math.Min(Math.Min(a.Y, b.Y), Math.Min(c.Y, d.Y)), e.Y);
             float maxX = Math.Max(Math.Max(Math.Max(a.X, b.X), Math.Max(c.X, d.X)), e.X);
