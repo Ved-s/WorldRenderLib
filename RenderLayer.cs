@@ -19,23 +19,6 @@ namespace WorldRenderLib
             Renderer = renderer;
         }
 
-        public void PrepareAndSetTarget()
-        {
-            const int AddSize = 32;
-
-            int rtWidth = Renderer.WorldRectangle.Width + Renderer.OffScreenRender * 2;
-            int rtHeight = Renderer.WorldRectangle.Height + Renderer.OffScreenRender * 2;
-
-            if (RenderTarget is null || RenderTarget.Width < rtWidth || RenderTarget.Height < rtHeight)
-            {
-                RenderTarget?.Dispose();
-                RenderTarget = new(Main.instance.GraphicsDevice, rtWidth + AddSize, rtHeight + AddSize);
-            }
-
-            Main.instance.GraphicsDevice.SetRenderTarget(RenderTarget);
-            LastRenderScreenPos = Main.screenPosition - new Vector2(Renderer.OffScreenRender);
-        }
-
         public void DrawLayer()
         {
             const int AddSize = 32;

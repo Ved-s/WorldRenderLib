@@ -24,10 +24,13 @@ namespace WorldRenderLib
         WorldRenderer OtherSide = null!;
 
         static IPortalHelperWrapper PortalHelperWrapper = TypeWrapping.CreateWrapper<IPortalHelperWrapper>(typeof(PortalHelper), null!);
+        static IModLoaderWrapper ModLoaderWrapper = TypeWrapping.CreateWrapper<IModLoaderWrapper>(typeof(ModLoader), null!);
         static Effect? PortalShader;
 
         Rectangle OldViewBox;
+        Vector2 ViewBoxVelocity;
         Vector2 LastRenderRelativePlayer;
+        Vector2 LastRenderRenderPosToPortal;
 
         public PortalGateHooks2() { }
 
@@ -55,6 +58,9 @@ namespace WorldRenderLib
         {
             PortalGateHooks2 hooks = (PortalGateHooks2)base.NewInstance(target);
 
+            if (ModLoaderWrapper.IsLoading)
+                return hooks;
+
             int projIndex = target.whoAmI;
             hooks.OtherSide = new()
             {
@@ -71,9 +77,15 @@ namespace WorldRenderLib
 
             return hooks;
         }
-
         public override bool AppliesToEntity(Projectile entity, bool lateInstantiation)
-            => entity.type == ProjectileID.PortalGunGate;
+        {
+            return entity.type == ProjectileID.PortalGunGate;
+        }
+        public override void Kill(Projectile projectile, int timeLeft)
+        {
+            OtherSide.Enabled = false;
+            Portals.Remove(projectile);
+        }
 
         public void DrawPortal(Projectile projectile)
         {
@@ -96,7 +108,9 @@ namespace WorldRenderLib
             Vector2 playerScreen = Main.LocalPlayer.Center - Main.screenPosition;
 
             if (WorldRenderer.RenderingAny && WorldRenderer.CurrentRenderer.Owner is PortalGateHooks2 otherHooks)
+            {
                 playerScreen = otherHooks.LastRenderRelativePlayer;
+            }
 
             if (portalScreen.X < 0 || portalScreen.Y < 0 || portalScreen.X > Main.screenWidth || portalScreen.Y > Main.screenHeight)
             {
@@ -111,8 +125,10 @@ namespace WorldRenderLib
             if (dot < 0)
             {
                 if (!WorldRenderer.RenderingAny)
+                {
                     OtherSide.Enabled = false;
-                return;
+                    return;
+                }
             }
 
             OtherSide.Enabled = true;
@@ -126,8 +142,12 @@ namespace WorldRenderLib
             Vector2 portalCenterHitDir = portalScreen - playerScreen;
             Vector2 portalRightHitDir = (portalRight - playerScreen).RotatedBy(-0.05);
 
+            portalLeftHitDir.Normalize();
+            portalCenterHitDir.Normalize();
+            portalRightHitDir.Normalize();
+
             float leftAngle = MathF.Atan2(portalLeftHitDir.Y, portalLeftHitDir.X);
-            float centerAngle = MathF.Atan2(-MathF.Cos(projectile.ai[0]), MathF.Sin(projectile.ai[0]));
+            float centerAngle = projectile.ai[0] - MathF.PI / 2;
             float rightAngle = MathF.Atan2(portalRightHitDir.Y, portalRightHitDir.X);
 
             leftAngle = MathHelper.WrapAngle(leftAngle - centerAngle);
@@ -135,8 +155,6 @@ namespace WorldRenderLib
 
             if (leftAngle > 0 && rightAngle < 0)
                 portalCenterHitDir = -portalDir;
-
-            portalCenterHitDir.Normalize();
 
             Vector2 portalRightHit = RaycastToScreenBorder(portalRight, portalRightHitDir);
             Vector2 portalLeftHit = RaycastToScreenBorder(portalLeft, portalLeftHitDir);
@@ -169,17 +187,17 @@ namespace WorldRenderLib
 
                 PortalShader.CurrentTechnique.Passes[0].Apply();
 
-                Main.spriteBatch.Draw(OtherSide.RenderResult, OldViewBox.Center.ToVector2() - Main.screenPosition, null, Color.White, angleDiff, OtherSide.RenderResult.Size() / 2, 1f, SpriteEffects.None, 0);
+                Vector2 renderPos = OldViewBox.Center.ToVector2();
+
+                if (WorldRenderer.RenderingAny)
+                {
+                    renderPos = projectile.Center - LastRenderRenderPosToPortal;
+                }
+
+                Main.spriteBatch.Draw(OtherSide.RenderResult, renderPos - Main.screenPosition, null, Color.White, angleDiff, OtherSide.RenderResult.Size() / 2, 1f, SpriteEffects.None, 0);
 
                 Main.spriteBatch.End();
                 Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
-
-                //Graphics.DrawDotWorld(OldViewBox.Center.ToVector2(), Color.Cyan);
-
-                //Graphics.DrawLine(portalRight, portalLeft, Color.White);
-                //Graphics.DrawLine(portalRight, portalRightHit, Color.White);
-                //Graphics.DrawLine(portalLeft, portalLeftHit, Color.White);
-                //Graphics.DrawLine(portalScreen, portalCenterHit, Color.White);
             }
 
             if (!WorldRenderer.RenderingAny)
@@ -194,7 +212,10 @@ namespace WorldRenderLib
                 Vector2 renderPosWorld = viewBox.Center.ToVector2() + Main.screenPosition;
 
                 if (OtherSide.IsReady)
+                {
                     LastRenderRelativePlayer = (Main.LocalPlayer.Center.RotatedBy(-angleDiff, renderPosWorld) - renderPosWorld + OtherSide.RenderResult.Size() / 2);
+                    LastRenderRenderPosToPortal = projectile.Center - OldViewBox.Center.ToVector2();
+                }
 
                 Rectangle otherSideViewBox = viewBox;
 
@@ -206,22 +227,11 @@ namespace WorldRenderLib
                 otherSideViewBox.Offset(portalDiff.ToPoint());
                 otherSideViewBox.Offset(Main.screenPosition.ToPoint());
 
-                // TODO: fix huge world render size when jumping through horizontal portals
-                if (otherSideViewBox.Width < -100000 || otherSideViewBox.Width > 100000 || otherSideViewBox.Height < -100000 || otherSideViewBox.Height > 100000)
-                {
-                    otherSideViewBox.Width = otherSideViewBox.Height = 0;
-                }
-
                 OtherSide.WorldRectangle = otherSideViewBox;
 
                 OldViewBox = viewBox;
                 OldViewBox.Offset(Main.screenPosition.ToPoint());
             }
-        }
-        public override void Kill(Projectile projectile, int timeLeft)
-        {
-            OtherSide.Enabled = false;
-            Portals.Remove(projectile);
         }
 
         static Vector2 RaycastToScreenBorder(Vector2 start, Vector2 dir)
@@ -233,8 +243,8 @@ namespace WorldRenderLib
             float distX = dir.X > 0 ? Main.screenWidth - start.X : start.X;
             float distY = dir.Y > 0 ? Main.screenHeight - start.Y : start.Y;
 
-            float lengthX = distX / MathF.Cos(angle);
-            float lengthY = distY / MathF.Sin(angle);
+            float lengthX = dir.X == 0 ? float.MaxValue : distX / MathF.Cos(angle);
+            float lengthY = dir.Y == 0 ? float.MaxValue : distY / MathF.Sin(angle);
 
             return dir * Math.Min(lengthX, lengthY) + start;
         }

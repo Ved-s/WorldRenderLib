@@ -91,6 +91,8 @@ namespace WorldRenderLib
         private float[] BGAlphaFrontLayer = new float[14];
         private float[] BGAlphaFarBackLayer = new float[14];
 
+        private Vector2 ScreenLastPosition;
+
         private int BackgroundDelay;
         private int BackgroundStyle;
 
@@ -237,6 +239,7 @@ namespace WorldRenderLib
             Main.screenWidth = WorldRectangle.Width + OffScreenRender * 2;
             Main.screenHeight = WorldRectangle.Height + OffScreenRender * 2;
             Main.screenPosition = WorldRectangle.Location.ToVector2() - new Vector2(OffScreenRender) + new Vector2(Main.offScreenRange);
+            Main.screenLastPosition = ScreenLastPosition;
             Main.offScreenRange = OffScreenRender;
 
             if (FirstDraw || RenderCount == 0)
@@ -339,6 +342,7 @@ namespace WorldRenderLib
 
             device.SetRenderTarget(null);
             RenderResultRectangle = WorldRectangle;
+            ScreenLastPosition = Main.screenPosition;
 
             (RenderResultSwap, RenderResult) = (RenderResult, RenderResultSwap);
             saveRestoreRender.MoveNext();
@@ -351,6 +355,8 @@ namespace WorldRenderLib
 
             RenderCount++;
             RenderCount %= 4;
+
+            
         }
 
         void RenderBiomeBackground()
@@ -458,6 +464,7 @@ namespace WorldRenderLib
             int screenWidth = Main.screenWidth;
             int screenHeight = Main.screenHeight;
             Vector2 screenPos = Main.screenPosition;
+            Vector2 screenLastPos = Main.screenLastPosition;
             ILightingEngine lightingEngine = LightingWrapper.ActiveEngine;
             SpriteViewMatrix gameView = Main.GameViewMatrix;
             int[] specialsCount = TilesRenderingWrapper.SpecialsCount;
@@ -504,6 +511,7 @@ namespace WorldRenderLib
             Main.screenWidth = screenWidth;
             Main.screenHeight = screenHeight;
             Main.screenPosition = screenPos;
+            Main.screenLastPosition = ScreenLastPosition;
             LightingWrapper.ActiveEngine = lightingEngine;
             Main.GameViewMatrix = gameView;
             TilesRenderingWrapper.SpecialsCount = specialsCount;
