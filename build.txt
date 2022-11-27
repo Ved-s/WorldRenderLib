@@ -1,5 +1,5 @@
 displayName = World Render Library (Preview)
 author = Ved_s
-version = 0.99
+version = 0.99.1
 side = Client
 homepage = https://github.com/Ved-s/WorldRenderLib
