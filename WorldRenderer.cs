@@ -355,8 +355,6 @@ namespace WorldRenderLib
 
             RenderCount++;
             RenderCount %= 4;
-
-            
         }
 
         void RenderBiomeBackground()

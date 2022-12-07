@@ -15,7 +15,7 @@ using WorldRenderLib.Wrapping;
 
 namespace WorldRenderLib
 {
-    internal class PortalGateHooks2 : GlobalProjectile
+    internal class PortalView : GlobalProjectile
     {
         private static List<Projectile> Portals = new();
 
@@ -32,7 +32,7 @@ namespace WorldRenderLib
         Vector2 LastRenderRelativePlayer;
         Vector2 LastRenderRenderPosToPortal;
 
-        public PortalGateHooks2() { }
+        public PortalView() { }
 
         public override void Load()
         {
@@ -46,17 +46,22 @@ namespace WorldRenderLib
         {
             orig(self);
 
+            
+        }
+
+        public static void DrawPortals()
+        {
             Portals.RemoveAll(p => Main.projectile[p.whoAmI] != p);
             Portals.Sort((a, b) => (int)(b.Center.DistanceSQ(Main.LocalPlayer.Center) - a.Center.DistanceSQ(Main.LocalPlayer.Center)));
-            
+
             foreach (Projectile p in Portals)
-                if (p.TryGetGlobalProjectile<PortalGateHooks2>(out var hooks))
+                if (p.TryGetGlobalProjectile<PortalView>(out var hooks))
                     hooks.DrawPortal(p);
         }
 
         public override GlobalProjectile NewInstance(Projectile target)
         {
-            PortalGateHooks2 hooks = (PortalGateHooks2)base.NewInstance(target);
+            PortalView hooks = (PortalView)base.NewInstance(target);
 
             if (ModLoaderWrapper.IsLoading)
                 return hooks;
@@ -107,7 +112,7 @@ namespace WorldRenderLib
             Vector2 portalScreen = projectile.Center - Main.screenPosition;
             Vector2 playerScreen = Main.LocalPlayer.Center - Main.screenPosition;
 
-            if (WorldRenderer.RenderingAny && WorldRenderer.CurrentRenderer.Owner is PortalGateHooks2 otherHooks)
+            if (WorldRenderer.RenderingAny && WorldRenderer.CurrentRenderer.Owner is PortalView otherHooks)
             {
                 playerScreen = otherHooks.LastRenderRelativePlayer;
             }

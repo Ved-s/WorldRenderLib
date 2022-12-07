@@ -1,4 +1,6 @@
 World Render Library allows modders to easily render parts of the world and use it in their projects.
 
-As an example of doing that, library changes portals from Portal Gun to render terrarin on the other side of the portal.
-All code for doing that can be found on GitHub: https://github.com/Ved-s/WorldRenderLib/blob/master/PortalGateHooks2.cs
+Library changes portals from Portal Gun to render terrarin on the other side of the portal.
+Library adds gif recording capabilities to Capture Mode.
+
+All code for using renderer can be found on mod's homepage (https://github.com/Ved-s/WorldRenderLib)

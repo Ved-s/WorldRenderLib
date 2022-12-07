@@ -1,5 +1,6 @@
 displayName = World Render Library (Preview)
 author = Ved_s
-version = 0.99.1
+version = 0.99.2
 side = Client
 homepage = https://github.com/Ved-s/WorldRenderLib
+dllReferences = SixLabors.ImageSharp
